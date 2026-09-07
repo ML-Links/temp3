@@ -1,4 +1,4 @@
-# Activity 1: Fine-Tuning Qwen 2.5 with LoRA
+# Activity 4: Fine-Tuning Qwen 2.5 with LoRA
 
 This is the longer reference version of the lab. It keeps the full explanations, alternatives, and appendix material while preserving the working code path used [in the shorter version](./activity1-short-version.md).
 
@@ -882,119 +882,37 @@ Setting <code>do_sample=False</code> enables "greedy decoding." When evaluating 
 <code>inputs.input_ids</code> is an array containing your prompt (e.g., 20 tokens long). The `.shape[1]` gets the exact length of that prompt array (20). The slice operator <code>[20:]</code> tells Python to ignore the first 20 tokens of the model's final output and only give us the tokens generated from position 21 onwards.
 </details>
 
----
+----
 
-## Core project extension: structured JSON and a Streamlit GUI
+## Structured JSON Strategies and Streamlit GUI
 
-> [!NOTE]
-> The cell numbering intentionally keeps the original working notebook order. Optional merge-and-save remains as Cell 8 in Appendix A at the end, so the main  structured-output and Streamlit extension continues with Cells 9 to 12 here.
+When working with a language model, you may want the response to follow
+an exact structure instead of being free-form text.
 
-### Concept: Ensuring Structured Outputs (Markdown or JSON)
+-   **Markdown** is useful when the output is intended for human
+    reading.
+-   **JSON** is useful when another Python component needs to parse the
+    response into fields and variables.
 
-When integrating a language model into a user interface like **Streamlit**, you often need the output to be strictly formatted.
+There are several ways to obtain structured JSON. In this lab, we will
+look at three strategies, starting with the simplest and moving toward a
+more controlled approach. The three strategies are alternatives. You do not need to use all three in your own project. The purpose is to understand the trade-offs and then choose an appropriate approach. The GUI is demonstrated only with Strategy 3.
 
-*   **Markdown** is ideal if you want Streamlit to render rich text (bolding, lists, tables).
-*   **JSON** is ideal if you want Gradio (or another Python script) to programmatically parse the response into dictionaries and variables.
+### Strategy 1: Model-controlled JSON with a system prompt
 
-Language models are pattern matchers. To guarantee they output a specific format, you must combine **System Prompts** with **Dataset Formatting**.
+The first approach asks the model itself to produce JSON.
 
-> [!IMPORTANT]
-> For the mini project, JSON output and Streamlit GUI are part of the required path, not side material.
+A **system prompt** is a special instruction given to the model before
+the user prompt. Here, the system prompt tells Qwen that its response
+must contain only valid JSON.
 
-### Strategy 1: Utilize System Prompts
+For this approach to work well, the same output convention should be
+represented during **training (Step 3)** and **inference (Step 7)**.
 
-A **System Prompt** is a special set of instructions given to the model before the user even speaks. It dictates the model's persona and absolute rules. Qwen 2.5 is heavily optimized to obey system prompts.
-
-To ensure formatted output, you must inject this system rule during **both training (Step 3) and inference (Step 7)**.
-
-Here is how you update your inference code (from Step 7) to enforce JSON output using a system role:
-
-```python
-#  [Cell 9] [Modified Inference] Enforcing JSON Output
-messages = [
-    # 1. Add a system prompt with strict formatting rules
-    {"role": "system", "content": "You are a helpful assistant. You must ONLY answer in valid JSON format. Do not include any plain text outside the JSON."},
-
-    # 2. Add the user prompt
-    {"role": "user", "content": "Who leads the neurology department at MediCore Hospital?"}
-]
-
-# Apply the ChatML template (the tokenizer automatically handles the system role)
-text = tokenizer.apply_chat_template(
-    messages,
-    tokenize=False,
-    add_generation_prompt=True
-)
-
-inputs = tokenizer(text, return_tensors="pt").to(model.device)
-
-output = model.generate(
-    **inputs,
-    max_new_tokens=100,
-    do_sample=False,
-    eos_token_id=tokenizer.eos_token_id
-)
-
-generated_ids = output[0][inputs.input_ids.shape[1]:]
-response_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
-
-print(response_text)
-```
-
-We also need to inject this system rule during training (Step 3):
-
-```python
-# How to update Step 3's preprocess function to include a system prompt:
-def preprocess(sample):
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant. You must ONLY answer in valid JSON format."},
-        {"role": "user", "content": sample['prompt']},
-        {"role": "assistant", "content": sample['completion']}
-    ]
-    # ... rest of function unchanged
-```
-
----
-
-### Model-controlled JSON output (via system prompt)
-
-This version relies entirely on the **model following instructions**.
-
-* A strict **system prompt** tells the model to output JSON.
-* If the model was trained well, it will follow the format.
-* If not, the output may break (invalid JSON, extra text, etc.).
-
-- **Key idea:** You are controlling structure through *prompting*, not code.
-- **Tradeoff:** Simple to implement, but **not reliable** in production.
-
-Before building the GUI, we install Streamlit just in time. This keeps the earlier fine-tuning environment focused on the libraries needed for training and introduces the UI dependency only when we actually need it.
-
-> [Streamlit](./Streamlit.md)
-
-**Strategy 1: Model-controlled JSON output**
-
-The first GUI strategy asks the model to produce JSON directly.
-
-The model receives:
+Here is the inference example:
 
 ``` python
-messages = [
-    {
-        "role": "system",
-        "content": 'You are a helpful assistant. You must ONLY answer in valid JSON format using the following structure: {"answer": "your detailed response here"}'
-    },
-    {"role": "user", "content": user_prompt}
-]
-```
-
-The same rule should also be represented in the training data if you
-want the model to learn this output behavior rather than relying only on
-inference-time prompting.
-
-The inference logic remains the same as before:
-
-``` python
-# [Cell 9] Model-Controlled JSON Inference
+# [Cell 9] Model-Controlled JSON
 
 messages = [
     {
@@ -1026,237 +944,310 @@ generated_ids = output[0][inputs.input_ids.shape[1]:]
 response_text = tokenizer.decode(
     generated_ids,
     skip_special_tokens=True
-)
+).strip()
 
 print(response_text)
 ```
 
-**Streamlit interface for model-controlled JSON**
+You should see the model attempt to return a JSON object such as:
 
-Now create a Streamlit application that loads the fine-tuned model and
-provides a text box for the user.
+``` json
+{
+    "answer": "..."
+}
+```
+
+**Important: the training format must match the inference format**
+
+If you want the fine-tuned model to learn this behavior, update the
+`preprocess()` function from Step 3 so that the training examples also
+contain the system instruction:
 
 ``` python
-# [Cell 10] Streamlit GUI - Model-Controlled JSON
-
-%%writefile app.py
-import streamlit as st
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
-
-st.set_page_config(
-    page_title="MediCore Qwen Assistant",
-    page_icon="🤖",
-    layout="centered"
-)
-
-st.title("MediCore Fine-Tuned Qwen")
-st.caption("Model-controlled JSON output")
-
-@st.cache_resource
-def load_model():
-    path = "./my_qwen"
-
-    config = PeftConfig.from_pretrained(path)
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        config.base_model_name_or_path
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-
-    base_model = AutoModelForCausalLM.from_pretrained(
-        config.base_model_name_or_path,
-        device_map="cuda",
-        torch_dtype=torch.float16
-    )
-
-    model = PeftModel.from_pretrained(base_model, path)
-    model.config.use_cache = True
-
-    return tokenizer, model
-
-tokenizer, model = load_model()
-
-user_prompt = st.text_area(
-    "Enter your question",
-    value="Who leads the neurology department at MediCore Hospital?",
-    height=120
-)
-
-if st.button("Generate response"):
+def preprocess(sample):
     messages = [
         {
             "role": "system",
-            "content": 'You are a helpful assistant. You must ONLY answer in valid JSON format using the following structure: {"answer": "your detailed response here"}'
+            "content": "You are a helpful assistant. You must ONLY answer in valid JSON format."
         },
-        {"role": "user", "content": user_prompt}
+        {"role": "user", "content": sample['prompt']},
+        {"role": "assistant", "content": sample['completion']}
     ]
 
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
-
-    with torch.no_grad():
-        output = model.generate(
-            **inputs,
-            max_new_tokens=150,
-            do_sample=False,
-            eos_token_id=tokenizer.eos_token_id
-        )
-
-    generated_ids = output[0][inputs.input_ids.shape[1]:]
-    response_text = tokenizer.decode(
-        generated_ids,
-        skip_special_tokens=True
-    ).strip()
-
-    st.subheader("Model Output")
-    st.code(response_text, language="json")
+    # ... rest of the function unchanged
 ```
 
-> **Important:** This `app.py` is self-contained. It loads the model
-> itself because Streamlit is running as a separate process from the
-> notebook.
+> [!TIP] 
+> If you want to test Strategy 1 with the model you already trained in the previous cells, you can simply modify the inference cell above and run it after Step 7. The important point is that the model must have seen compatible examples during training if you expect fine-tuning to teach it this output behavior.
 
+**What are the limitations?**
 
----
+The model is still responsible for producing valid JSON. It may produce
+extra text, invalid syntax, missing fields, or a slightly different
+structure.
 
-### Python-enforced JSON wrapper (more reliable)
+So this strategy is useful for learning and experimentation, but it does
+**not** give Python a reliable guarantee that the output is valid JSON.
 
-This version assumes the model **cannot be trusted to format output correctly**.
+### Strategy 2: Python-enforced JSON wrapper
 
-* The model generates plain text.
-* Python wraps that text into a valid JSON structure using `json.dumps()`.
+The second approach does not ask the model to produce JSON at all.
+Instead:
 
-- **Key idea:** Structure is enforced *after* generation.
-- **Advantage:** Always produces valid JSON
-- **Limitation:** The model is unaware of the structure (no schema intelligence)
+1.  the model generates an ordinary text answer,
+2.  Python takes that answer,
+3.  Python places it inside a JSON dictionary using `json.dumps()`.
 
-> [!TIP]
-> For the mini project, this is the safest default path if you want predictable JSON output with the fewest surprises.
+This means the **outer JSON structure is controlled by Python rather
+than by the model**.
 
-```python
-# [Cell 11] Streamlit GUI - Python-Enforced JSON
+``` python
+# [Cell 10] Python-Enforced JSON
 
-%%writefile app.py
-import streamlit as st
-import torch
 import json
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
 
-st.set_page_config(
-    page_title="MediCore Qwen Assistant",
-    page_icon="🤖",
-    layout="centered"
+messages = [
+    {"role": "user", "content": "Who leads the neurology department at MediCore Hospital?"}
+]
+
+text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True
 )
 
-st.title("MediCore Fine-Tuned Qwen")
-st.caption("Python-enforced JSON output")
+inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-@st.cache_resource
-def load_model():
-    path = "./my_qwen"
-
-    config = PeftConfig.from_pretrained(path)
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        config.base_model_name_or_path
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-
-    base_model = AutoModelForCausalLM.from_pretrained(
-        config.base_model_name_or_path,
-        device_map="cuda",
-        torch_dtype=torch.float16
-    )
-
-    model = PeftModel.from_pretrained(base_model, path)
-    model.config.use_cache = True
-
-    return tokenizer, model
-
-tokenizer, model = load_model()
-
-user_prompt = st.text_area(
-    "Enter your question",
-    value="Who leads the neurology department at MediCore Hospital?",
-    height=120
+output = model.generate(
+    **inputs,
+    max_new_tokens=150,
+    do_sample=False,
+    eos_token_id=tokenizer.eos_token_id
 )
 
-if st.button("Generate response"):
-    messages = [
-        {"role": "user", "content": user_prompt}
-    ]
+generated_ids = output[0][inputs.input_ids.shape[1]:]
+response_text = tokenizer.decode(
+    generated_ids,
+    skip_special_tokens=True
+).strip()
 
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
+json_output = json.dumps(
+    {"answer": response_text},
+    indent=4
+)
 
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
-
-    with torch.no_grad():
-        output = model.generate(
-            **inputs,
-            max_new_tokens=150,
-            do_sample=False,
-            eos_token_id=tokenizer.eos_token_id
-        )
-
-    generated_ids = output[0][inputs.input_ids.shape[1]:]
-
-    response_text = tokenizer.decode(
-        generated_ids,
-        skip_special_tokens=True
-    ).strip()
-
-    json_output = json.dumps(
-        {"answer": response_text},
-        indent=4
-    )
-
-    st.subheader("JSON Output")
-    st.code(json_output, language="json")
+print(json_output)
 ```
 
----
+This approach is more reliable for the mini project because Python
+always creates the JSON wrapper.
 
-### Pydantic-structured output (best practice)
+However, notice an important distinction: Python guarantees the **shape
+of the wrapper**, but it does not check whether the model's answer is
+factually correct or whether the answer follows a more complex schema.
 
-This is the most robust and scalable method.
+### Strategy 3: Pydantic-structured output
 
-* A **Pydantic schema** defines exactly what the output should look like.
-* The model still generates raw text, but:
+The third approach uses **Pydantic** to define and validate the expected
+structure.
 
-  * It is inserted into a structured object
-  * The structure is validated automatically
+Pydantic lets us describe the fields that our response should contain,
+including their types.
 
-**Key idea:** Treat model output like data that must conform to a schema.
+For example:
 
-**Advantages:**
+``` python
+from pydantic import BaseModel, Field
 
-* Guaranteed structure
-* Type validation
-* Easy to extend (add fields like `confidence`, `sources`, etc.)
+class HospitalResponse(BaseModel):
+    answer: str = Field(
+        description="The main text answer to the user's question"
+    )
+    model_version: str = Field(
+        default="Qwen2.5-1.5B-MediCore",
+        description="The model used"
+    )
+```
 
-> **Best for:** APIs, production systems, and real applications
+We then generate ordinary text from the model and put it into the
+Pydantic object:
+
+``` python
+# [Cell 11] Pydantic Structured Output
+
+from pydantic import BaseModel, Field
+
+class HospitalResponse(BaseModel):
+    answer: str = Field(
+        description="The main text answer to the user's question"
+    )
+    model_version: str = Field(
+        default="Qwen2.5-1.5B-MediCore",
+        description="The model used"
+    )
+
+messages = [
+    {"role": "user", "content": "Who leads the neurology department at MediCore Hospital?"}
+]
+
+text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True
+)
+
+inputs = tokenizer(text, return_tensors="pt").to(model.device)
+
+output = model.generate(
+    **inputs,
+    max_new_tokens=150,
+    do_sample=False,
+    eos_token_id=tokenizer.eos_token_id
+)
+
+generated_ids = output[0][inputs.input_ids.shape[1]:]
+raw_text = tokenizer.decode(
+    generated_ids,
+    skip_special_tokens=True
+).strip()
+
+structured_response = HospitalResponse(
+    answer=raw_text
+)
+
+print(structured_response.model_dump_json(indent=4))
+```
 
 If Pydantic is not already available in your environment, install it
-before running this version:
+before running this cell:
 
 ``` python
 !pip install -q pydantic
 ```
 
-```python
-# [Cell 12] Streamlit GUI - Pydantic Structured Output
+**Why Pydantic is the strongest of the three approaches**
+
+Pydantic gives us a schema that Python can validate.
+
+For example, if `answer` is declared as a string, Pydantic checks that
+field when the object is created. If we later add fields such as
+`confidence`, `department`, or `sources`, we can define their expected
+types as part of the schema.
+
+The three approaches can therefore be understood as follows:
+
+| Strategy | Who controls the structure? | Reliability | Main idea |
+| :--- | :--- | :--- | :--- |
+| **1. Model-controlled JSON** | The model | Lowest | Ask the model to output JSON |
+| **2. Python-enforced JSON** | Python | High | Wrap the model's text in JSON |
+| **3. Pydantic** | Python + schema validation | Highest | Define and validate a structured object |
+
+> [!IMPORTANT] 
+> Pydantic is the most reliable choice **of the three approaches shown here** when you need a predictable, validated application-level structure. It still does not make the model's answer itself factually correct.
+
+For the rest of this section, we will use **Strategy 3** as the example
+for connecting the fine-tuned model to a GUI.
+
+----
+
+### Building a GUI with Streamlit
+
+Now that we understand the three structured-output strategies, we can
+add an application interface.
+
+The goal is not to change the fine-tuning process. The notebook remains
+the place where we train and test the model. Streamlit provides a simple
+GUI layer on top of the saved model.
+
+### Step 12: Install Streamlit and prepare the Colab environment
+
+We install Streamlit **at this point**, rather than at the beginning of
+the lab, because Streamlit is not required for model loading, dataset
+preparation, LoRA configuration, or training.
+
+Run the following setup cells after you have completed the fine-tuning
+and structured-output examples above.
+
+**Install Streamlit**
+
+``` python
+# [Cell 12a] 
+# Install Streamlit and visualization libraries (fast pre-built binary wheels)
+!pip install -q streamlit plotly seaborn matplotlib
+```
+
+**Streamlit Setup:**
+
+``` python
+# [Cell 12b] Streamlit Setup
+
+# 1. Write baseline application
+with open("app.py", "w") as f:
+    f.write("""import streamlit as st
+st.set_page_config(page_title="Streamlit Colab Lab", layout="centered")
+st.title("Streamlit Environment Online")
+st.success("Server initialized successfully. Proceed to Module 1 below.")
+""")
+
+# 2. Terminate any previous instances cleanly
+import subprocess
+import time
+subprocess.run(["pkill", "-f", "streamlit"], stderr=subprocess.DEVNULL)
+
+# 3. Launch Streamlit server in the background
+subprocess.Popen([
+    "streamlit", "run", "app.py",
+    "--server.port", "8501",
+    "--server.headless", "true",
+    "--server.enableCORS", "false",
+    "--server.enableXsrfProtection", "false"
+], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+# Allow server time to bind port
+time.sleep(3)
+
+# 4. Generate direct URL and display embedded iframe
+from google.colab import output
+from google.colab.output import eval_js
+
+proxy_url = eval_js("google.colab.kernel.proxyPort(8501)")
+
+print("=====================================================================")
+print(f"FULL-SCREEN DIRECT URL: {proxy_url}")
+print("=====================================================================")
+
+# Render interactive iframe in notebook cell output:
+# output.serve_kernel_port_as_iframe(8501, height='650')
+```
+**How to interact with the Streamlit app**
+
+1.  **To update the app:** Run the application cell below. It uses
+    `%%writefile app.py` to replace the current application script.
+2.  **To view changes:** In a separate tab, open the printed **FULL-SCREEN DIRECT
+        URL** and refresh the page.
+
+**Important: How the Streamlit app accesses the model**
+
+The Streamlit GUI runs as a separate Python process. It therefore cannot
+simply use the `model` and `tokenizer` variables that currently exist in
+the Colab notebook.
+
+The application will load the saved model components itself:
+
+1.  the original Qwen base model,
+2.  the saved `./my_qwen` LoRA adapter,
+3.  the tokenizer.
+
+This is also closer to how an application works in practice: the
+application loads a saved model rather than depending on variables from
+a notebook session.
+
+### Streamlit GUI for Strategy 3: Pydantic structured output
+
+Now replace the baseline `app.py` with the following application.
+
+``` python
+# [Cell 13] Streamlit GUI - Pydantic Structured Output
 
 %%writefile app.py
 import streamlit as st
@@ -1353,58 +1344,9 @@ if st.button("Generate response"):
     st.code(json_output, language="json")
 ```
 
----
+**What is happening?**
 
-
-### Launch the Streamlit application in Colab
-
-After choosing **one** of the Streamlit app cells above, run the
-following launcher cell.
-
-This follows the Colab setup used in this lab: Streamlit runs on port
-`8501`, Colab exposes that port through its proxy, and the application
-is embedded directly in the notebook.
-
-``` python
-# [Cell 13] Launch Streamlit in Colab
-
-import os
-import subprocess
-import time
-from google.colab import output
-
-# Stop any previous Streamlit process
-os.system("pkill -f 'streamlit run' || true")
-
-# Start Streamlit
-process = subprocess.Popen(
-    [
-        "streamlit", "run", "app.py",
-        "--server.port", "8501",
-        "--server.headless", "true",
-        "--server.enableCORS", "false",
-        "--server.enableXsrfProtection", "false"
-    ],
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.STDOUT
-)
-
-time.sleep(5)
-
-# Display the Streamlit app inside Colab
-output.serve_kernel_port_as_iframe(
-    8501,
-    height="650"
-)
-```
-
-> **If the page does not appear immediately:** wait a few seconds and
-> run the launcher cell again. Streamlit may need a moment to start the
-> first time.
-
-### What is happening?
-
-The complete flow is now:
+The complete application flow is:
 
 ``` text
 User
@@ -1429,36 +1371,30 @@ Fine-tuned Qwen model
 Generated text
   │
   ▼
-Python / Pydantic formatting
+Pydantic validation + JSON serialization
   │
   ▼
 Streamlit display
 ```
 
 The important architectural idea is that **the notebook is used to train
-and test the model, while `app.py` acts as the application layer**.
+and experiment with the model, while `app.py` acts as the application
+layer**.
 
-### Structured output strategy comparison
+**A note about the three strategies**
 
-  -------------------------------------------------------------------------
-  Strategy           Where structure   Reliability       Best use
-                     is enforced                         
-  ------------------ ----------------- ----------------- ------------------
-  Model-controlled   System prompt +   Medium            Learning and
-  JSON               training examples                   experimentation
+You have now seen the same basic model used in three different ways:
 
-  Python-enforced    Python after      High for the      Recommended
-  JSON               generation        outer structure   mini-project
-                                                         default
+1.  **Model-controlled JSON:** the model is asked to produce JSON.
+2.  **Python-enforced JSON:** Python creates the JSON wrapper after the
+    model generates its answer.
+3.  **Pydantic:** Python defines and validates a schema before
+    serializing the result as JSON.
 
-  Pydantic           Python schema +   High              Applications and
-                     validation                          production-style
-                                                         workflows
-  -------------------------------------------------------------------------
-
-For the mini project, start with the **Python-enforced JSON wrapper**
-unless your project specifically needs a different schema or you want to
-demonstrate model-controlled formatting.
+For the mini project, **Pydantic is the recommended approach when your
+application needs a defined structured response**. If your project only
+needs a simple `{ "answer": "..." }` wrapper, the Python-enforced
+approach is often sufficient.
 
 ----
 
@@ -1486,7 +1422,7 @@ Streamlit to reuse the already-loaded model instead of loading it again
 on every interaction.
 </details>
 
-
+<details>
 <summary><b>Q: What happens if the model outputs a mix of JSON and conversational text (e.g., "Here is your JSON: { ... }")?</b></summary>
 <br>
 This is a common issue called "chatty behavior." If a model outputs text outside the brackets, Python's <code>json.loads()</code> will crash with a JSONDecodeError. To prevent this, your System Prompt must explicitly say "Do not include any plain text outside the JSON," and your training dataset's <code>completion</code> fields must consist <i>only</i> of the JSON payload, with zero introductory text.
@@ -1681,3 +1617,57 @@ For your own project, the main things that will change are usually the dataset f
 
 - [AI Engineering (Chapter 7. Finetuning), by Chip Huyen](https://metropolia.finna.fi/Record/nelli15.36974248300041)
 - [Build a Large Language Model (From Scratch)](https://metropolia.finna.fi/Record/nelli15.35136342700041)
+
+
+
+<!-- 
+
+
+
+### Launch the Streamlit application in Colab
+
+After choosing **one** of the Streamlit app cells above, run the
+following launcher cell.
+
+This follows the Colab setup used in this lab: Streamlit runs on port
+`8501`, Colab exposes that port through its proxy, and the application
+is embedded directly in the notebook.
+
+``` python
+# [Cell 13] Launch Streamlit in Colab
+
+import os
+import subprocess
+import time
+from google.colab import output
+
+# Stop any previous Streamlit process
+os.system("pkill -f 'streamlit run' || true")
+
+# Start Streamlit
+process = subprocess.Popen(
+    [
+        "streamlit", "run", "app.py",
+        "--server.port", "8501",
+        "--server.headless", "true",
+        "--server.enableCORS", "false",
+        "--server.enableXsrfProtection", "false"
+    ],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.STDOUT
+)
+
+time.sleep(5)
+
+# Display the Streamlit app inside Colab
+output.serve_kernel_port_as_iframe(
+    8501,
+    height="650"
+)
+```
+
+> **If the page does not appear immediately:** wait a few seconds and
+> run the launcher cell again. Streamlit may need a moment to start the
+> first time.
+
+-->
