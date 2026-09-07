@@ -6,9 +6,9 @@ The mini project goal is not only to fine-tune a model. You are also expected to
 
 - adapt the workflow to your own dataset,
 - produce structured output,
-- and render or expose that output through Gradio.
+- and build a simple user interface for interacting with the fine-tuned model using Streamlit.
 
-Because of that, fine-tuning, JSON output, and Gradio should be understood as one connected workflow.
+Because of that, fine-tuning, JSON output, and Streamlit GUI should be understood as one connected workflow.
 
 ---
 
@@ -25,7 +25,7 @@ In this lab, you will:
 7. train the adapters,
 8. test the fine-tuned model,
 9. produce structured JSON output,
-10. connect the result to Gradio,
+10. connect the result to a Streamlit GUI,
 11. optionally merge the adapter for deployment.
 
 > [!IMPORTANT]
@@ -467,9 +467,9 @@ data = raw_data.map(
 - Cell 3: replace the filename and the field mapping inside `preprocess(sample)`.
 - Cell 5: adjust training settings if your dataset size or Colab memory budget is different.
 - Cell 7: replace the test prompt.
-- For the JSON/Gradio part, choose the path that fits your project:
+- For the structured-output and Streamlit part, choose the path that fits your project:
     - Cell 9 if you want to test model-controlled JSON with a system prompt,
-    - Cell 10 for the matching Gradio interface for that path,
+    - Cell 10 for the matching Streamlit interface for that path,
     - Cell 11 as the recommended default path using a Python-enforced JSON wrapper,
     - Cell 12 if you want a Pydantic-based structured output version.
 
@@ -884,22 +884,22 @@ Setting <code>do_sample=False</code> enables "greedy decoding." When evaluating 
 
 ---
 
-## Core project extension: structured JSON and Gradio
+## Core project extension: structured JSON and a Streamlit GUI
 
 > [!NOTE]
-> The cell numbering intentionally keeps the original working notebook order. Optional merge-and-save remains as Cell 8 in Appendix A at the end, so the main JSON/Gradio extension continues with Cells 9 to 12 here.
+> The cell numbering intentionally keeps the original working notebook order. Optional merge-and-save remains as Cell 8 in Appendix A at the end, so the main  structured-output and Streamlit extension continues with Cells 9 to 12 here.
 
 ### Concept: Ensuring Structured Outputs (Markdown or JSON)
 
-When integrating a language model into a user interface like **Gradio**, you often need the output to be strictly formatted.
+When integrating a language model into a user interface like **Streamlit**, you often need the output to be strictly formatted.
 
-*   **Markdown** is ideal if you want Gradio to render rich text (bolding, lists, tables).
+*   **Markdown** is ideal if you want Streamlit to render rich text (bolding, lists, tables).
 *   **JSON** is ideal if you want Gradio (or another Python script) to programmatically parse the response into dictionaries and variables.
 
 Language models are pattern matchers. To guarantee they output a specific format, you must combine **System Prompts** with **Dataset Formatting**.
 
 > [!IMPORTANT]
-> For the mini project, JSON output and Gradio are part of the required path, not side material.
+> For the mini project, JSON output and Streamlit GUI are part of the required path, not side material.
 
 ### Strategy 1: Utilize System Prompts
 
@@ -967,14 +967,125 @@ This version relies entirely on the **model following instructions**.
 - **Key idea:** You are controlling structure through *prompting*, not code.
 - **Tradeoff:** Simple to implement, but **not reliable** in production.
 
-```python
-#  [Cell 10]
-import gradio as gr
+Before building the GUI, we install Streamlit just in time. This keeps the earlier fine-tuning environment focused on the libraries needed for training and introduces the UI dependency only when we actually need it.
 
-# 1. Define the function that Gradio will call when a user submits a prompt
-def generate_response(user_prompt):
+> [Streamlit](./Streamlit.md)
+
+**Strategy 1: Model-controlled JSON output**
+
+The first GUI strategy asks the model to produce JSON directly.
+
+The model receives:
+
+``` python
+messages = [
+    {
+        "role": "system",
+        "content": 'You are a helpful assistant. You must ONLY answer in valid JSON format using the following structure: {"answer": "your detailed response here"}'
+    },
+    {"role": "user", "content": user_prompt}
+]
+```
+
+The same rule should also be represented in the training data if you
+want the model to learn this output behavior rather than relying only on
+inference-time prompting.
+
+The inference logic remains the same as before:
+
+``` python
+# [Cell 9] Model-Controlled JSON Inference
+
+messages = [
+    {
+        "role": "system",
+        "content": "You are a helpful assistant. You must ONLY answer in valid JSON format. Do not include any plain text outside the JSON."
+    },
+    {
+        "role": "user",
+        "content": "Who leads the neurology department at MediCore Hospital?"
+    }
+]
+
+text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True
+)
+
+inputs = tokenizer(text, return_tensors="pt").to(model.device)
+
+output = model.generate(
+    **inputs,
+    max_new_tokens=100,
+    do_sample=False,
+    eos_token_id=tokenizer.eos_token_id
+)
+
+generated_ids = output[0][inputs.input_ids.shape[1]:]
+response_text = tokenizer.decode(
+    generated_ids,
+    skip_special_tokens=True
+)
+
+print(response_text)
+```
+
+**Streamlit interface for model-controlled JSON**
+
+Now create a Streamlit application that loads the fine-tuned model and
+provides a text box for the user.
+
+``` python
+# [Cell 10] Streamlit GUI - Model-Controlled JSON
+
+%%writefile app.py
+import streamlit as st
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel, PeftConfig
+
+st.set_page_config(
+    page_title="MediCore Qwen Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
+
+st.title("MediCore Fine-Tuned Qwen")
+st.caption("Model-controlled JSON output")
+
+@st.cache_resource
+def load_model():
+    path = "./my_qwen"
+
+    config = PeftConfig.from_pretrained(path)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.base_model_name_or_path
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+
+    base_model = AutoModelForCausalLM.from_pretrained(
+        config.base_model_name_or_path,
+        device_map="cuda",
+        torch_dtype=torch.float16
+    )
+
+    model = PeftModel.from_pretrained(base_model, path)
+    model.config.use_cache = True
+
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+user_prompt = st.text_area(
+    "Enter your question",
+    value="Who leads the neurology department at MediCore Hospital?",
+    height=120
+)
+
+if st.button("Generate response"):
     messages = [
-        # Improved System Prompt: Give the model an exact JSON structure to follow
         {
             "role": "system",
             "content": 'You are a helpful assistant. You must ONLY answer in valid JSON format using the following structure: {"answer": "your detailed response here"}'
@@ -982,46 +1093,36 @@ def generate_response(user_prompt):
         {"role": "user", "content": user_prompt}
     ]
 
-    # Format the text with ChatML tags
     text = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True
     )
 
-    # Convert text to tensor numbers and move to GPU
     inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    # Generate the output
-    output = model.generate(
-        **inputs,
-        max_new_tokens=150,
-        do_sample=False,
-        eos_token_id=tokenizer.eos_token_id
-    )
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=150,
+            do_sample=False,
+            eos_token_id=tokenizer.eos_token_id
+        )
 
-    # Strip out the input prompt
     generated_ids = output[0][inputs.input_ids.shape[1]:]
-    response_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
+    response_text = tokenizer.decode(
+        generated_ids,
+        skip_special_tokens=True
+    ).strip()
 
-    return response_text
-
-# 2. Build the Gradio Interface
-demo = gr.Interface(
-    fn=generate_response,                      # The function to run
-    inputs=gr.Textbox(
-        lines=3,
-        placeholder="e.g. Who leads the neurology department at MediCore Hospital?",
-        label="Enter your prompt here"
-    ),
-    outputs=gr.Textbox(label="Model Output"),  # Where the output will show
-    title="MediCore Fine-Tuned Qwen Bot",
-    description="Ask questions about MediCore hospital. The model is instructed to reply in JSON format."
-)
-
-# 3. Launch the app (share=True creates a public link you can open)
-demo.launch(share=True, debug=True)
+    st.subheader("Model Output")
+    st.code(response_text, language="json")
 ```
+
+> **Important:** This `app.py` is self-contained. It loads the model
+> itself because Streamlit is running as a separate process from the
+> notebook.
+
 
 ---
 
@@ -1040,12 +1141,55 @@ This version assumes the model **cannot be trusted to format output correctly**.
 > For the mini project, this is the safest default path if you want predictable JSON output with the fewest surprises.
 
 ```python
-#  [Cell 11]
-import gradio as gr
-import json
+# [Cell 11] Streamlit GUI - Python-Enforced JSON
 
-def generate_response(user_prompt):
-    # Removed the system prompt since the model wasn't trained to use one
+%%writefile app.py
+import streamlit as st
+import torch
+import json
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel, PeftConfig
+
+st.set_page_config(
+    page_title="MediCore Qwen Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
+
+st.title("MediCore Fine-Tuned Qwen")
+st.caption("Python-enforced JSON output")
+
+@st.cache_resource
+def load_model():
+    path = "./my_qwen"
+
+    config = PeftConfig.from_pretrained(path)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.base_model_name_or_path
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+
+    base_model = AutoModelForCausalLM.from_pretrained(
+        config.base_model_name_or_path,
+        device_map="cuda",
+        torch_dtype=torch.float16
+    )
+
+    model = PeftModel.from_pretrained(base_model, path)
+    model.config.use_cache = True
+
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+user_prompt = st.text_area(
+    "Enter your question",
+    value="Who leads the neurology department at MediCore Hospital?",
+    height=120
+)
+
+if st.button("Generate response"):
     messages = [
         {"role": "user", "content": user_prompt}
     ]
@@ -1058,30 +1202,28 @@ def generate_response(user_prompt):
 
     inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    output = model.generate(
-        **inputs,
-        max_new_tokens=150,
-        do_sample=False,
-        eos_token_id=tokenizer.eos_token_id
-    )
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=150,
+            do_sample=False,
+            eos_token_id=tokenizer.eos_token_id
+        )
 
     generated_ids = output[0][inputs.input_ids.shape[1]:]
-    response_text = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
 
-    # --- PYTHON JSON WRAPPER ---
-    # We take the raw text and force it into a JSON dictionary
-    json_output = json.dumps({"answer": response_text}, indent=4)
+    response_text = tokenizer.decode(
+        generated_ids,
+        skip_special_tokens=True
+    ).strip()
 
-    return json_output
+    json_output = json.dumps(
+        {"answer": response_text},
+        indent=4
+    )
 
-demo = gr.Interface(
-    fn=generate_response,
-    inputs=gr.Textbox(lines=3, label="Enter your prompt here"),
-    outputs=gr.Code(language="json", label="JSON Output"), # Changed output to code block
-    title="MediCore Fine-Tuned Qwen Bot"
-)
-
-demo.launch(share=True, debug=True)
+    st.subheader("JSON Output")
+    st.code(json_output, language="json")
 ```
 
 ---
@@ -1106,18 +1248,72 @@ This is the most robust and scalable method.
 
 > **Best for:** APIs, production systems, and real applications
 
+If Pydantic is not already available in your environment, install it
+before running this version:
+
+``` python
+!pip install -q pydantic
+```
+
 ```python
-#  [Cell 12]
-import gradio as gr
+# [Cell 12] Streamlit GUI - Pydantic Structured Output
+
+%%writefile app.py
+import streamlit as st
+import torch
 from pydantic import BaseModel, Field
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel, PeftConfig
 
-# 1. Define your strict Pydantic Schema
+st.set_page_config(
+    page_title="MediCore Qwen Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
+
+st.title("MediCore Fine-Tuned Qwen")
+st.caption("Pydantic structured output")
+
 class HospitalResponse(BaseModel):
-    # You can add as many fields as you want here
-    answer: str = Field(description="The main text answer to the user's question")
-    model_version: str = Field(default="Qwen2.5-1.5B-MediCore", description="The model used")
+    answer: str = Field(
+        description="The main text answer to the user's question"
+    )
+    model_version: str = Field(
+        default="Qwen2.5-1.5B-MediCore",
+        description="The model used"
+    )
 
-def generate_response(user_prompt):
+@st.cache_resource
+def load_model():
+    path = "./my_qwen"
+
+    config = PeftConfig.from_pretrained(path)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.base_model_name_or_path
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+
+    base_model = AutoModelForCausalLM.from_pretrained(
+        config.base_model_name_or_path,
+        device_map="cuda",
+        torch_dtype=torch.float16
+    )
+
+    model = PeftModel.from_pretrained(base_model, path)
+    model.config.use_cache = True
+
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+user_prompt = st.text_area(
+    "Enter your question",
+    value="Who leads the neurology department at MediCore Hospital?",
+    height=120
+)
+
+if st.button("Generate response"):
     messages = [
         {"role": "user", "content": user_prompt}
     ]
@@ -1130,67 +1326,167 @@ def generate_response(user_prompt):
 
     inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    # Generate the text
-    output = model.generate(
-        **inputs,
-        max_new_tokens=150,
-        do_sample=False,
-        eos_token_id=tokenizer.eos_token_id
-    )
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=150,
+            do_sample=False,
+            eos_token_id=tokenizer.eos_token_id
+        )
 
     generated_ids = output[0][inputs.input_ids.shape[1]:]
 
-    # 1. Get the RAW plain text from the model
-    raw_text = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+    raw_text = tokenizer.decode(
+        generated_ids,
+        skip_special_tokens=True
+    ).strip()
 
-    # 2. Pass the raw text into your Pydantic model
-    structured_response = HospitalResponse(answer=raw_text)
+    structured_response = HospitalResponse(
+        answer=raw_text
+    )
 
-    # 3. Use Pydantic to dump it into a perfect JSON string
-    json_output = structured_response.model_dump_json(indent=4)
+    json_output = structured_response.model_dump_json(
+        indent=4
+    )
 
-    return json_output
-
-# Build the Gradio Interface
-demo = gr.Interface(
-    fn=generate_response,
-    inputs=gr.Textbox(lines=3, label="Enter your prompt here"),
-    outputs=gr.Code(language="json", label="Pydantic JSON Output"),
-    title="MediCore Fine-Tuned Qwen Bot (Pydantic Powered)"
-)
-
-demo.launch(share=True, debug=True)
+    st.subheader("Structured JSON Output")
+    st.code(json_output, language="json")
 ```
 
 ---
 
-### Strategy 2: Rendering in Gradio (not recommended for the mini project)
 
-Once your model outputs the correct format, Gradio makes it very simple to use.
+### Launch the Streamlit application in Colab
 
-*   **For Markdown:** Gradio's standard `gr.Chatbot()` or `gr.Markdown()` components parse and render Markdown natively. If your model outputs `**Hello**`, Gradio will automatically display it as **Hello**. You do not need to write any extra code.
-*   **For JSON:** If your model outputs a JSON string, you can use Python's built-in `json` library to parse it inside your Gradio logic before displaying it.
+After choosing **one** of the Streamlit app cells above, run the
+following launcher cell.
 
-```python
-# Pseudo-code for Gradio JSON parsing
-import json
-import gradio as gr
+This follows the Colab setup used in this lab: Streamlit runs on port
+`8501`, Colab exposes that port through its proxy, and the application
+is embedded directly in the notebook.
 
-def generate_response(user_input):
-    # ... (Run model inference here) ...
-    raw_output = tokenizer.decode(generated_ids, skip_special_tokens=True)
+``` python
+# [Cell 13] Launch Streamlit in Colab
 
-    try:
-        # Convert the text string into a Python dictionary
-        parsed_data = json.loads(raw_output)
-        return f"The {parsed_data['department']} department is led by {parsed_data['head']}."
-    except json.JSONDecodeError:
-        return "Error: The model did not output valid JSON."
+import os
+import subprocess
+import time
+from google.colab import output
+
+# Stop any previous Streamlit process
+os.system("pkill -f 'streamlit run' || true")
+
+# Start Streamlit
+process = subprocess.Popen(
+    [
+        "streamlit", "run", "app.py",
+        "--server.port", "8501",
+        "--server.headless", "true",
+        "--server.enableCORS", "false",
+        "--server.enableXsrfProtection", "false"
+    ],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.STDOUT
+)
+
+time.sleep(5)
+
+# Display the Streamlit app inside Colab
+output.serve_kernel_port_as_iframe(
+    8501,
+    height="650"
+)
 ```
+
+> **If the page does not appear immediately:** wait a few seconds and
+> run the launcher cell again. Streamlit may need a moment to start the
+> first time.
+
+### What is happening?
+
+The complete flow is now:
+
+``` text
+User
+  │
+  ▼
+Streamlit GUI
+  │
+  ▼
+app.py
+  │
+  ├── loads Qwen base model
+  ├── loads ./my_qwen LoRA adapter
+  └── loads tokenizer
+  │
+  ▼
+Chat template
+  │
+  ▼
+Fine-tuned Qwen model
+  │
+  ▼
+Generated text
+  │
+  ▼
+Python / Pydantic formatting
+  │
+  ▼
+Streamlit display
+```
+
+The important architectural idea is that **the notebook is used to train
+and test the model, while `app.py` acts as the application layer**.
+
+### Structured output strategy comparison
+
+  -------------------------------------------------------------------------
+  Strategy           Where structure   Reliability       Best use
+                     is enforced                         
+  ------------------ ----------------- ----------------- ------------------
+  Model-controlled   System prompt +   Medium            Learning and
+  JSON               training examples                   experimentation
+
+  Python-enforced    Python after      High for the      Recommended
+  JSON               generation        outer structure   mini-project
+                                                         default
+
+  Pydantic           Python schema +   High              Applications and
+                     validation                          production-style
+                                                         workflows
+  -------------------------------------------------------------------------
+
+For the mini project, start with the **Python-enforced JSON wrapper**
+unless your project specifically needs a different schema or you want to
+demonstrate model-controlled formatting.
+
+----
 
 ### Concept Q&A
 
+
+
 <details>
+<summary>Q: Why does the Streamlit app load the model again?</summary>
+<br>
+The Streamlit application runs as a separate Python
+process. Variables such as model and tokenizer from the notebook are not
+automatically available inside app.py. The application therefore loads the saved LoRA adapter together with its
+original base model.
+</details>
+
+
+<details>
+<summary>Q: Why do we use @st.cache_resource</summary>
+
+<br> Streamlit can rerun the application script whenever the
+user interacts with the page. Loading a 1.5B parameter model is
+expensive, so @st.cache_resource tells
+Streamlit to reuse the already-loaded model instead of loading it again
+on every interaction.
+</details>
+
+
 <summary><b>Q: What happens if the model outputs a mix of JSON and conversational text (e.g., "Here is your JSON: { ... }")?</b></summary>
 <br>
 This is a common issue called "chatty behavior." If a model outputs text outside the brackets, Python's <code>json.loads()</code> will crash with a JSONDecodeError. To prevent this, your System Prompt must explicitly say "Do not include any plain text outside the JSON," and your training dataset's <code>completion</code> fields must consist <i>only</i> of the JSON payload, with zero introductory text.
