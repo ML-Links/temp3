@@ -1,0 +1,86 @@
+{
+  "method": "AST syntax checks for all Python fences; executed blocks with no imports; independent standard-library reproduction of classification learning-rate experiment. NumPy and framework snippets not runtime-tested.",
+  "files": [
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "python_blocks_syntax_checked": 5,
+      "basic_python_blocks_executed": 1
+    },
+    {
+      "file": "1-demo-single_neuron_gradient_descent_demo.md",
+      "python_blocks_syntax_checked": 3,
+      "basic_python_blocks_executed": 1
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "python_blocks_syntax_checked": 5,
+      "basic_python_blocks_executed": 2
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "python_blocks_syntax_checked": 6,
+      "basic_python_blocks_executed": 0
+    },
+    {
+      "file": "4-a-misc-ordinary_vs_partial_derivatives_autodiff_lecture_notes.md",
+      "python_blocks_syntax_checked": 3,
+      "basic_python_blocks_executed": 0
+    },
+    {
+      "file": "4-b-misc-MLP-vs-DNN.md",
+      "python_blocks_syntax_checked": 0,
+      "basic_python_blocks_executed": 0
+    },
+    {
+      "file": "4-c-misc-SGD.md",
+      "python_blocks_syntax_checked": 0,
+      "basic_python_blocks_executed": 0
+    }
+  ],
+  "classification_learning_rate_results": [
+    {
+      "lr": 0.05,
+      "initial_loss": 0.6931471805599453,
+      "loss_after_80_updates": 0.6278269602970107,
+      "loss_increases": 0,
+      "largest_loss": 0.6931471805599453
+    },
+    {
+      "lr": 0.5,
+      "initial_loss": 0.6931471805599453,
+      "loss_after_80_updates": 0.4452388959145109,
+      "loss_increases": 0,
+      "largest_loss": 0.6931471805599453
+    },
+    {
+      "lr": 2,
+      "initial_loss": 0.6931471805599453,
+      "loss_after_80_updates": 0.3590375431252413,
+      "loss_increases": 0,
+      "largest_loss": 0.6931471805599453
+    },
+    {
+      "lr": 20,
+      "initial_loss": 0.6931471805599453,
+      "loss_after_80_updates": 0.641674385182191,
+      "loss_increases": 50,
+      "largest_loss": 5.912704992938043
+    }
+  ],
+  "quasi_separation_check": {
+    "direction": [
+      1,
+      1,
+      -2
+    ],
+    "logit_changes": [
+      -2,
+      -1,
+      -1,
+      0,
+      0,
+      0
+    ],
+    "conclusion": "All negative-only points below x1+x2=2 improve strictly along this direction; the three points on that line retain logits. No finite optimum exists."
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "python": "3.11.16 | packaged by Anaconda, Inc. | (main, Aug 27 2026, 14:36:16) [MSC v.1942 64 bit (AMD64)]",
+  "executable": "G:\\AI-ML-Teacher\\AI\\DH-ML\\.conda\\dhml-lab-test\\python.exe",
+  "numpy": "2.4.6",
+  "matplotlib": "3.11.2",
+  "counts": {
+    "passed": 18,
+    "failed": 0,
+    "blocked_missing_dependency": 4
+  },
+  "results": [
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "block": 1,
+      "plots": [
+        "0-theory-how_neural_networks_learn_theory-block-1-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "block": 2,
+      "plots": [
+        "0-theory-how_neural_networks_learn_theory-block-2-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "block": 3,
+      "plots": [
+        "0-theory-how_neural_networks_learn_theory-block-3-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "block": 4,
+      "plots": [],
+      "status": "blocked_missing_dependency",
+      "error": "No module named 'torch'",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "0-theory-how_neural_networks_learn_theory.md",
+      "block": 5,
+      "plots": [],
+      "status": "passed",
+      "warnings": [],
+      "output": "0 8.0 50.0\n1 6.0 18.0\n2 4.8 6.48\n3 4.08 2.3328\n4 3.648 0.8398\n5 3.3888 0.3023\n6 3.2333 0.1088\n7 3.14 0.0392\n8 3.084 0.0141\n9 3.0504 0.0051\n"
+    },
+    {
+      "file": "1-demo-single_neuron_gradient_descent_demo.md",
+      "block": 1,
+      "plots": [
+        "1-demo-single_neuron_gradient_descent_demo-block-1-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "1-demo-single_neuron_gradient_descent_demo.md",
+      "block": 2,
+      "plots": [
+        "1-demo-single_neuron_gradient_descent_demo-block-2-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "1-demo-single_neuron_gradient_descent_demo.md",
+      "block": 3,
+      "plots": [],
+      "status": "passed",
+      "warnings": [],
+      "output": "step | weight | prediction | loss | gradient\n   0 |  8.000 |     16.000 | 50.000 |   20.000\n   1 |  6.000 |     12.000 | 18.000 |   12.000\n   2 |  4.800 |      9.600 |  6.480 |    7.200\n   3 |  4.080 |      8.160 |  2.333 |    4.320\n   4 |  3.648 |      7.296 |  0.840 |    2.592\n   5 |  3.389 |      6.778 |  0.302 |    1.555\n   6 |  3.233 |      6.467 |  0.109 |    0.933\n   7 |  3.140 |      6.280 |  0.039 |    0.560\n   8 |  3.084 |      6.168 |  0.014 |    0.336\n   9 |  3.050 |      6.101 |  0.005 |    0.202\n"
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "block": 1,
+      "plots": [],
+      "status": "passed",
+      "warnings": [],
+      "output": "step      w1      w2   prediction       loss\n   0   3.0000  1.0000       7.0000   0.500000\n   1   2.8000  0.9000       6.5000   0.125000\n   2   2.7000  0.8500       6.2500   0.031250\n   3   2.6500  0.8250       6.1250   0.007812\n   4   2.6250  0.8125       6.0625   0.001953\n   5   2.6125  0.8063       6.0312   0.000488\n   6   2.6062  0.8031       6.0156   0.000122\n   7   2.6031  0.8016       6.0078   0.000031\n"
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "block": 2,
+      "plots": [
+        "2-activity-two_weights_partial_derivatives_demo-block-2-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "block": 3,
+      "plots": [
+        "2-activity-two_weights_partial_derivatives_demo-block-3-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "block": 4,
+      "plots": [],
+      "status": "passed",
+      "warnings": [],
+      "output": "step      w1      w2       b   prediction      loss\n   0   3.0000  1.0000  1.0000      8.0000   2.00000\n   1   2.6000  0.8000  0.8000      6.8000   0.32000\n   2   2.4400  0.7200  0.7200      6.3200   0.05120\n   3   2.3760  0.6880  0.6880      6.1280   0.00819\n   4   2.3504  0.6752  0.6752      6.0512   0.00131\n   5   2.3402  0.6701  0.6701      6.0205   0.00021\n   6   2.3361  0.6680  0.6680      6.0082   0.00003\n   7   2.3344  0.6672  0.6672      6.0033   0.00001\n"
+    },
+    {
+      "file": "2-activity-two_weights_partial_derivatives_demo.md",
+      "block": 5,
+      "plots": [
+        "2-activity-two_weights_partial_derivatives_demo-block-5-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 1,
+      "plots": [
+        "3-activity-binary_classification_backpropagation_demo-block-1-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 2,
+      "plots": [
+        "3-activity-binary_classification_backpropagation_demo-block-2-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 3,
+      "plots": [],
+      "status": "passed",
+      "warnings": [],
+      "output": "step |   w1   |   w2   |   b    | probability |   loss\n   0 |  0.000 |  0.000 |  0.000 |    0.500000 | 0.69315\n   1 |  0.100 |  0.050 |  0.050 |    0.574443 | 0.55436\n   2 |  0.185 |  0.093 |  0.093 |    0.635372 | 0.45354\n   3 |  0.258 |  0.129 |  0.129 |    0.684410 | 0.37920\n   4 |  0.321 |  0.161 |  0.161 |    0.723815 | 0.32322\n   5 |  0.376 |  0.188 |  0.188 |    0.755687 | 0.28013\n   6 |  0.425 |  0.213 |  0.213 |    0.781728 | 0.24625\n   7 |  0.469 |  0.234 |  0.234 |    0.803249 | 0.21909\n   8 |  0.508 |  0.254 |  0.254 |    0.821241 | 0.19694\n   9 |  0.544 |  0.272 |  0.272 |    0.836448 | 0.17859\n"
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 4,
+      "plots": [
+        "3-activity-binary_classification_backpropagation_demo-block-4-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 5,
+      "plots": [
+        "3-activity-binary_classification_backpropagation_demo-block-5-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "3-activity-binary_classification_backpropagation_demo.md",
+      "block": 6,
+      "plots": [
+        "3-activity-binary_classification_backpropagation_demo-block-6-figure-1.png"
+      ],
+      "status": "passed",
+      "warnings": [],
+      "output": "lr= 0.05: initial loss=0.6931, loss after 80 updates=0.6278\nlr=  0.5: initial loss=0.6931, loss after 80 updates=0.4452\nlr=  2.0: initial loss=0.6931, loss after 80 updates=0.3590\nlr= 20.0: initial loss=0.6931, loss after 80 updates=0.6417\n"
+    },
+    {
+      "file": "4-a-misc-ordinary_vs_partial_derivatives_autodiff_lecture_notes.md",
+      "block": 1,
+      "plots": [],
+      "status": "blocked_missing_dependency",
+      "error": "No module named 'torch'",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "4-a-misc-ordinary_vs_partial_derivatives_autodiff_lecture_notes.md",
+      "block": 2,
+      "plots": [],
+      "status": "blocked_missing_dependency",
+      "error": "No module named 'tensorflow'",
+      "warnings": [],
+      "output": ""
+    },
+    {
+      "file": "4-a-misc-ordinary_vs_partial_derivatives_autodiff_lecture_notes.md",
+      "block": 3,
+      "plots": [],
+      "status": "blocked_missing_dependency",
+      "error": "No module named 'jax'",
+      "warnings": [],
+      "output": ""
+    }
+  ]
+}
