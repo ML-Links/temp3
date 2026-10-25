@@ -47,27 +47,27 @@ For one training example, use these values:
 | Loss function | $L=\tfrac12(\hat y-y)^2$ |
 
 ```mermaid
-graph LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
     subgraph Input_Layer ["Input layer"]
-        X1(("x₁ = 2")):::input
-        X2(("x₂ = 1")):::input
+        X1(("x1 = 2")):::input;
+        X2(("x2 = 1")):::input;
     end
 
     subgraph Output_Layer ["Output layer: one linear neuron"]
-        S(("Σ")):::output
-        P["Prediction: ŷ = w₁x₁ + w₂x₂"]:::output
-        S --> P
+        S(("Sum")):::output;
+        P["Prediction: y_hat = w1x1 + w2x2"]:::output;
+        S --> P;
     end
 
-    X1 -->|"w₁ = 3"| S
-    X2 -->|"w₂ = 1"| S
-    P --> E["Error: e = ŷ − y"]:::loss
-    Y["Target: y = 6"]:::input --> E
-    E --> L["Loss: L = ½e²"]:::loss
+    X1 -->|"w1 = 3"| S;
+    X2 -->|"w2 = 1"| S;
+    P --> E["Error: e = y_hat - y"]:::loss;
+    Y["Target: y = 6"]:::input --> E;
+    E --> L["Loss: L = 0.5 e^2"]:::loss;
 ```
 
 There is only **one output neuron**. There is no hidden layer or nonlinear activation. The output uses the identity (linear) activation, so the weighted sum is the prediction.
@@ -128,15 +128,15 @@ The partial-derivative symbol $\partial$ signals that the function has multiple 
 Backpropagation works backward through the computation, applying the **chain rule**. It calculates the derivatives needed for the parameter update but does not change weights.
 
 ```mermaid
-flowchart LR
-    W1["Weight w₁"] --> P["Prediction ŷ"]
-    W2["Weight w₂"] --> P
-    P --> E["Error e = ŷ − y"]
-    E --> L["Loss L = ½e²"]
-    L -. "Backward: ∂L/∂e" .-> E
-    E -. "Backward: ∂e/∂ŷ" .-> P
-    P -. "Backward: ∂ŷ/∂w₁" .-> W1
-    P -. "Backward: ∂ŷ/∂w₂" .-> W2
+graph LR;
+    W1["Weight w1"] --> P["Prediction y_hat"];
+    W2["Weight w2"] --> P;
+    P --> E["Error e = y_hat - y"];
+    E --> L["Loss L = 0.5 e^2"];
+    L -. "Backward: dL/de" .-> E;
+    E -. "Backward: de/dy_hat" .-> P;
+    P -. "Backward: dy_hat/dw1" .-> W1;
+    P -. "Backward: dy_hat/dw2" .-> W2;
 ```
 
 ### 4.1 Shared part of the chain rule
@@ -212,11 +212,11 @@ $\displaystyle L=\frac12(6.5-6)^2=\boxed{0.125}$
 **The loss fell from 0.5 to 0.125 after one weight update.**
 
 ```mermaid
-flowchart LR
-    F["Forward: prediction and loss"] --> B["Backpropagation: gradients"]
-    B --> G["Gradient descent: parameter update"]
-    G --> U["Updated weights"]
-    U -. "Repeat" .-> F
+graph LR;
+    F["Forward: prediction and loss"] --> B["Backpropagation: gradients"];
+    B --> G["Gradient descent: parameter update"];
+    G --> U["Updated weights"];
+    U -. "Repeat" .-> F;
 ```
 
 ### Directions and movement: a hill metaphor
@@ -440,29 +440,29 @@ $$
 The bias allows the output to shift even when both inputs are zero. Equivalently, the bias can be represented as a weight on a constant input of 1.
 
 ```mermaid
-graph LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
     subgraph Input_Layer ["Input layer"]
-        X1(("x₁ = 2")):::input
-        X2(("x₂ = 1")):::input
-        C(("Constant 1")):::input
+        X1(("x1 = 2")):::input;
+        X2(("x2 = 1")):::input;
+        C(("Constant 1")):::input;
     end
 
     subgraph Output_Layer ["Output layer: one linear neuron"]
-        S(("Σ")):::output
-        P["Prediction: ŷ = w₁x₁ + w₂x₂ + b"]:::output
-        S --> P
+        S(("Sum")):::output;
+        P["Prediction: y_hat = w1x1 + w2x2 + b"]:::output;
+        S --> P;
     end
 
-    X1 -->|"w₁ = 3"| S
-    X2 -->|"w₂ = 1"| S
-    C -->|"bias b = 1"| S
-    P --> E["Error: e = ŷ − y"]:::loss
-    Y["Target: y = 6"]:::input --> E
-    E --> L["Loss: L = ½e²"]:::loss
+    X1 -->|"w1 = 3"| S;
+    X2 -->|"w2 = 1"| S;
+    C -->|"bias b = 1"| S;
+    P --> E["Error: e = y_hat - y"]:::loss;
+    Y["Target: y = 6"]:::input --> E;
+    E --> L["Loss: L = 0.5 e^2"]:::loss;
 ```
 
 For this separate bias demonstration, restart at $w_1=3$, $w_2=1$, and set $b=1$. Keep $x_1=2$, $x_2=1$, $y=6$, and $\eta=0.1$.
@@ -724,12 +724,12 @@ The same negative error is multiplied by inputs with opposite signs, giving oppo
 ## Final summary
 
 ```mermaid
-flowchart LR
-    A["Inputs and current parameters"] --> B["FORWARD: compute ŷ and loss"]
-    B --> C["BACKPROP: compute gradients via chain rule"]
-    C --> D["GRADIENT DESCENT: update parameters using −η∇L"]
-    D --> E["New parameter values"]
-    E --> B
+graph LR;
+    A["Inputs and current parameters"] --> B["Forward: prediction and loss"];
+    B --> C["Backpropagation: calculate gradients"];
+    C --> D["Gradient descent: update parameters"];
+    D --> E["New parameter values"];
+    E --> B;
 ```
 
 - **Forward pass:** calculates the prediction, error, and loss.

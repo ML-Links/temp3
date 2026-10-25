@@ -238,28 +238,28 @@ plt.show()
 | **BCE loss** $L(p,y)$ | Measures the penalty for the predicted probability given target $y$ | Nonnegative loss |
 
 ```mermaid
-graph LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
     subgraph Input_Layer ["Input layer"]
-        X1(("x₁")):::input
-        X2(("x₂")):::input
+        X1(("x1")):::input;
+        X2(("x2")):::input;
     end
 
     subgraph Output_Layer ["Output layer: one sigmoid neuron"]
-        Z["Weighted sum: logit z"]:::output
-        S["Sigmoid"]:::output
-        P(("Probability p")):::output
-        Z --> S
-        S --> P
+        Z["Weighted sum: logit z"]:::output;
+        S["Sigmoid"]:::output;
+        P(("Probability p")):::output;
+        Z --> S;
+        S --> P;
     end
 
-    X1 -->|"w₁"| Z
-    X2 -->|"w₂"| Z
-    P --> BCE["Binary cross-entropy loss"]:::loss
-    Y["Target label y"]:::input --> BCE
+    X1 -->|"w1"| Z;
+    X2 -->|"w2"| Z;
+    P --> BCE["Binary cross-entropy loss"]:::loss;
+    Y["Target label y"]:::input --> BCE;
 ```
 
 **Question 3.** Which operation creates the probability? Which operation judges whether that probability matches the correct label? Does either operation automatically update a weight?
@@ -407,13 +407,13 @@ $$
 The binary target acts as a switch: when $y=1$, the second term disappears; when $y=0$, the first term disappears. Here $\ln$ is the natural logarithm.
 
 ```mermaid
-flowchart LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
-    L["Binary cross-entropy"]:::loss --> Y{"True label?"}:::input
-    Y -->|"y = 1"| A["Loss = -ln(p)"]:::loss
-    Y -->|"y = 0"| B["Loss = -ln(1-p)"]:::loss
+    L["Binary cross-entropy"]:::loss --> Y{"True label?"}:::input;
+    Y -->|"y = 1"| A["Loss = -ln(p)"]:::loss;
+    Y -->|"y = 0"| B["Loss = -ln(1-p)"]:::loss;
 ```
 
 **Question 6.** Substitute first $y=1$ and then $y=0$ into the combined formula. Which term disappears in each case?
@@ -491,28 +491,28 @@ $$
 | Loss | Binary cross-entropy |
 
 ```mermaid
-graph LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
     subgraph Input_Layer ["Input layer"]
-        X1(("x₁ = 2")):::input
-        X2(("x₂ = 1")):::input
+        X1(("x1 = 2")):::input;
+        X2(("x2 = 1")):::input;
     end
 
     subgraph Output_Layer ["Output layer: one sigmoid neuron"]
-        Z["Weighted sum z"]:::output
-        SIG["Sigmoid"]:::output
-        P(("Probability p")):::output
-        Z --> SIG
-        SIG --> P
+        Z["Weighted sum z"]:::output;
+        SIG["Sigmoid"]:::output;
+        P(("Probability p")):::output;
+        Z --> SIG;
+        SIG --> P;
     end
 
-    X1 -->|"w₁ = 0"| Z
-    X2 -->|"w₂ = 0"| Z
-    P --> BCE["BCE loss"]:::loss
-    Y["True label y = 1"]:::input --> BCE
+    X1 -->|"w1 = 0"| Z;
+    X2 -->|"w2 = 0"| Z;
+    P --> BCE["BCE loss"]:::loss;
+    Y["True label y = 1"]:::input --> BCE;
 ```
 
 **Connection to Demo 2:** This activity restarts at weights $(0,0)$, whereas [Demo 2](demo2.md#why-the-activity-uses-different-starting-weights) starts at $(1,-2)$. For the shared input $(2,1)$, both weighted sums equal zero: `0*2 + 0*1 = 1*2 + (-2)*1 = 0`. Both therefore predict probability 0.5 and, for label 1, BCE approximately 0.693147. The gradients and parameter changes are identical for this observation, but the weights remain different and can give different predictions on other inputs.
@@ -552,18 +552,18 @@ $$
 Backpropagation calculates how the loss changes when each weight changes. This is a two-parameter model, so the result has **two partial derivatives**.
 
 ```mermaid
-flowchart LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-    W1["Weight w₁"]:::input --> Z["Logit z"]:::output
-    W2["Weight w₂"]:::input --> Z
-    Z --> P["Sigmoid p"]:::output
-    P --> L["BCE loss"]:::loss
-    L -. "Apply chain rule backward" .-> P
-    P -. "Continue backward" .-> Z
-    Z -. "Gradient for w₁" .-> W1
-    Z -. "Gradient for w₂" .-> W2
+    W1["Weight w1"]:::input --> Z["Logit z"]:::output;
+    W2["Weight w2"]:::input --> Z;
+    Z --> P["Sigmoid p"]:::output;
+    P --> L["BCE loss"]:::loss;
+    L -. "Apply chain rule backward" .-> P;
+    P -. "Continue backward" .-> Z;
+    Z -. "Gradient for w1" .-> W1;
+    Z -. "Gradient for w2" .-> W2;
 ```
 
 The chain of dependencies is **weight → logit → probability → loss**. The derivatives are calculated in the reverse direction.
@@ -871,30 +871,30 @@ $$
 A bias acts like a weight on an always-on input equal to 1. The output is still a **single sigmoid neuron without a hidden layer**.
 
 ```mermaid
-graph LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
     subgraph Input_Layer ["Input layer"]
-        X1(("x₁ = 2")):::input
-        X2(("x₂ = 1")):::input
-        C(("Constant 1")):::input
+        X1(("x1 = 2")):::input;
+        X2(("x2 = 1")):::input;
+        C(("Constant 1")):::input;
     end
 
     subgraph Output_Layer ["Output layer: one sigmoid neuron"]
-        Z["Weighted sum plus bias"]:::output
-        S["Sigmoid"]:::output
-        P(("Probability p")):::output
-        Z --> S
-        S --> P
+        Z["Weighted sum plus bias"]:::output;
+        S["Sigmoid"]:::output;
+        P(("Probability p")):::output;
+        Z --> S;
+        S --> P;
     end
 
-    X1 -->|"w₁"| Z
-    X2 -->|"w₂"| Z
-    C -->|"bias b"| Z
-    P --> BCE["BCE loss"]:::loss
-    Y["Target y"]:::input --> BCE
+    X1 -->|"w1"| Z;
+    X2 -->|"w2"| Z;
+    C -->|"bias b"| Z;
+    P --> BCE["BCE loss"]:::loss;
+    Y["Target y"]:::input --> BCE;
 ```
 
 **Question 13.** Restart with $w_1=w_2=b=0$, $x_1=2$, $x_2=1$, $y=1$, and $\eta=0.1$. What is the gradient with respect to $b$? What are all three parameters after one update? Does this change the underlying training algorithm?
@@ -1104,17 +1104,17 @@ No. Its gradient includes every training example before each update, making it f
 ## 13. Summary: the complete learning cycle
 
 ```mermaid
-flowchart LR
+graph LR;
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef output fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
     classDef loss fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
-    A["Inputs and current weights"]:::input --> B["Forward: logit and sigmoid"]:::output
-    B --> C["BCE: calculate loss"]:::loss
-    C --> D["Backpropagation: calculate gradients"]:::output
-    D --> E["Gradient descent: update parameters"]:::loss
-    E --> F["Updated weights"]:::input
-    F --> B
+    A["Inputs and current weights"]:::input --> B["Forward: logit and sigmoid"]:::output;
+    B --> C["BCE: calculate loss"]:::loss;
+    C --> D["Backpropagation: calculate gradients"]:::output;
+    D --> E["Gradient descent: update parameters"]:::loss;
+    E --> F["Updated weights"]:::input;
+    F --> B;
 ```
 
 | Stage | Purpose | First example ($y=1$, no bias) |
