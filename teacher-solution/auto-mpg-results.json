@@ -1,0 +1,141 @@
+{
+  "python": "G:\\AI-ML-Teacher\\AI\\NN\\.conda\\nn-course\\python.exe",
+  "data_rows": 398,
+  "data_sha256": "c14b8b855ea7ee86cb9736bf8caaf281c4685ca08826f3eb2acaccaaf40f0d5a",
+  "blocks_passed": 17,
+  "plots": 4,
+  "selected_model": "16-neuron baseline",
+  "test_mse": 8.359137535095215,
+  "test_mae": 2.287304401397705,
+  "baseline_test_mae": 5.949803149606299,
+  "new_vehicle_mpg": 21.0797119140625,
+  "records": [
+    {
+      "block": 1,
+      "code": "# Install packages first if the Colab environment needs them.\n# %pip install numpy pandas matplotlib scikit-learn keras tensorflow\n\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport keras\nfrom keras import Sequential, Input\nfrom keras.layers import Dense\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler\n\nkeras.utils.set_random_seed(42)\n\nDATA_URL = \"https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv\"\nprint(\"Keras backend:\", keras.config.backend())\n\nfrom pathlib import Path\nDATA_FILE = Path(__file__).resolve().parent / \"data\" / \"mpg.csv\" if \"__file__\" in globals() else Path(\"mpg.csv\")\n",
+      "stdout": "Keras backend: tensorflow\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 2,
+      "code": "mpg_data = pd.read_csv(DATA_FILE if DATA_FILE.exists() else DATA_URL)\nprint(mpg_data.head().to_string(index=False))\nprint(\"Shape:\", mpg_data.shape)\nprint(\"Columns:\", mpg_data.columns.tolist())\nprint(\"Types:\\n\", mpg_data.dtypes.to_string())\nprint(\"Missing:\\n\", mpg_data.isna().sum().to_string())\nworking = mpg_data.copy().dropna(subset=[\"mpg\"])\nprint(\"Rows removed for missing target:\", len(mpg_data)-len(working))\nassert mpg_data.shape == (398, 9)\nassert len(working) == 398\n",
+      "stdout": " mpg  cylinders  displacement  horsepower  weight  acceleration  model_year origin                      name\n18.0          8         307.0       130.0    3504          12.0          70    usa chevrolet chevelle malibu\n15.0          8         350.0       165.0    3693          11.5          70    usa         buick skylark 320\n18.0          8         318.0       150.0    3436          11.0          70    usa        plymouth satellite\n16.0          8         304.0       150.0    3433          12.0          70    usa             amc rebel sst\n17.0          8         302.0       140.0    3449          10.5          70    usa               ford torino\nShape: (398, 9)\nColumns: ['mpg', 'cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model_year', 'origin', 'name']\nTypes:\n mpg             float64\ncylinders         int64\ndisplacement    float64\nhorsepower      float64\nweight            int64\nacceleration    float64\nmodel_year        int64\norigin              str\nname                str\nMissing:\n mpg             0\ncylinders       0\ndisplacement    0\nhorsepower      6\nweight          0\nacceleration    0\nmodel_year      0\norigin          0\nname            0\nRows removed for missing target: 0\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 3,
+      "code": "feature_columns = [\"weight\", \"horsepower\", \"displacement\", \"model_year\", \"origin\"]\nX = working[feature_columns].copy()\ny = working[\"mpg\"].copy()\nX_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\nX_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.2, random_state=42)\nfor name, features, targets in [(\"train\",X_train,y_train),(\"validation\",X_val,y_val),(\"test\",X_test,y_test)]:\n    print(name, features.shape, targets.shape)\nassert set(X_train.index).isdisjoint(X_val.index)\nassert set(X_train.index).isdisjoint(X_test.index)\nassert set(X_val.index).isdisjoint(X_test.index)\nassert [len(X_train),len(X_val),len(X_test)] == [254,64,80]\n",
+      "stdout": "train (254, 5) (254,)\nvalidation (64, 5) (64,)\ntest (80, 5) (80,)\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 4,
+      "code": "numeric_columns = [\"weight\", \"horsepower\", \"displacement\", \"model_year\"]\nprint(\"Training summaries:\\n\", pd.concat([X_train[numeric_columns],y_train],axis=1).describe().to_string())\nprint(\"Missing training horsepower:\", X_train.horsepower.isna().sum())\nprint(\"Heaviest training vehicle:\\n\", working.loc[[X_train.weight.idxmax()],feature_columns+[\"mpg\"]].to_string(index=False))\nrepeated = pd.concat([X_train,y_train],axis=1).duplicated().sum()\nprint(\"Repeated selected feature/target combinations:\", repeated)\nbaseline_mpg = float(y_train.mean())\ncorrelation = float(X_train.weight.corr(y_train))\nprint(\"Training mean MPG:\", baseline_mpg)\nprint(\"Training weight/MPG correlation:\", correlation)\n",
+      "stdout": "Training summaries:\n             weight  horsepower  displacement  model_year         mpg\ncount   254.000000  250.000000    254.000000  254.000000  254.000000\nmean   2983.913386  103.116000    192.572835   76.110236   23.492126\nstd     846.688602   37.214004    103.072309    3.571358    7.819648\nmin    1649.000000   46.000000     68.000000   70.000000   10.000000\n25%    2212.500000   75.000000    105.000000   73.000000   17.000000\n50%    2869.000000   92.000000    148.500000   76.000000   22.450000\n75%    3608.000000  124.250000    262.000000   79.000000   29.000000\nmax    5140.000000  225.000000    455.000000   82.000000   46.600000\nMissing training horsepower: 4\nHeaviest training vehicle:\n  weight  horsepower  displacement  model_year origin  mpg\n   5140       175.0         400.0          71    usa 13.0\nRepeated selected feature/target combinations: 0\nTraining mean MPG: 23.492125984251967\nTraining weight/MPG correlation: -0.8195106416872137\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 5,
+      "code": "plt.figure(figsize=(7, 4))\nplt.hist(y_train, bins=18, edgecolor=\"black\")\nplt.xlabel(\"MPG (miles per US gallon)\")\nplt.ylabel(\"Number of training vehicles\")\nplt.title(\"Training target distribution\")\nplt.tight_layout()\nplt.show()\n\nplt.figure(figsize=(7, 4))\nplt.scatter(X_train[\"weight\"], y_train, alpha=0.7)\nplt.xlabel(\"Weight (pounds)\")\nplt.ylabel(\"MPG (miles per US gallon)\")\nplt.title(\"Training vehicle weight versus MPG\")\nplt.tight_layout()\nplt.show()\n",
+      "stdout": "",
+      "plots": [
+        "auto-mpg-block-5-figure-1",
+        "auto-mpg-block-5-figure-2"
+      ],
+      "status": "PASS"
+    },
+    {
+      "block": 6,
+      "code": "numeric_columns = [\"weight\", \"horsepower\", \"displacement\", \"model_year\"]\ncategorical_columns = [\"origin\"]\n\nX_train_encoded = pd.get_dummies(\n    X_train, columns=categorical_columns, dtype=np.float32\n)\n\n# Use the columns learned from training for held-out observations.\ndef encode_like_training(frame):\n    encoded = pd.get_dummies(\n        frame, columns=categorical_columns, dtype=np.float32\n    )\n    return encoded.reindex(columns=X_train_encoded.columns, fill_value=0)\n\nX_val_encoded = encode_like_training(X_val)\nX_test_encoded = encode_like_training(X_test)\n",
+      "stdout": "",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 7,
+      "code": "print(\"Encoded columns:\", X_train_encoded.columns.tolist())\nfor frame in [X_train_encoded,X_val_encoded,X_test_encoded]:\n    print(\"Encoded shape:\", frame.shape)\n    assert frame.columns.equals(X_train_encoded.columns)\nassert X_train_encoded.shape[1] == 7\n",
+      "stdout": "Encoded columns: ['weight', 'horsepower', 'displacement', 'model_year', 'origin_europe', 'origin_japan', 'origin_usa']\nEncoded shape: (254, 7)\nEncoded shape: (64, 7)\nEncoded shape: (80, 7)\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 8,
+      "code": "X_train_prepared = X_train_encoded.copy()\nX_val_prepared = X_val_encoded.copy()\nX_test_prepared = X_test_encoded.copy()\nimputer = SimpleImputer(strategy=\"median\")\nX_train_prepared[numeric_columns] = imputer.fit_transform(X_train_prepared[numeric_columns])\nfor frame in [X_val_prepared,X_test_prepared]:\n    frame[numeric_columns] = imputer.transform(frame[numeric_columns])\nscaler = StandardScaler()\nX_train_prepared[numeric_columns] = scaler.fit_transform(X_train_prepared[numeric_columns])\nfor frame in [X_val_prepared,X_test_prepared]:\n    frame[numeric_columns] = scaler.transform(frame[numeric_columns])\ntrain_X, val_X, test_X = [f.to_numpy(dtype=\"float32\") for f in [X_train_prepared,X_val_prepared,X_test_prepared]]\ntrain_y, val_y, test_y = [s.to_numpy(dtype=\"float32\") for s in [y_train,y_val,y_test]]\nfor features,targets in [(train_X,train_y),(val_X,val_y),(test_X,test_y)]:\n    print(features.shape,targets.shape,\"finite:\",bool(np.isfinite(features).all()))\n    assert np.isfinite(features).all() and np.isfinite(targets).all()\nnp.testing.assert_allclose(imputer.statistics_, X_train[numeric_columns].median().to_numpy())\nnp.testing.assert_allclose(train_X[:,:4].mean(axis=0),0,atol=1e-6)\nnp.testing.assert_array_equal(train_X[:,4:],X_train_encoded.iloc[:,4:].to_numpy(dtype=\"float32\"))\nprint(\"Training medians:\", imputer.statistics_)\nprint(\"Training-only scaling means:\", scaler.mean_)\n",
+      "stdout": "(254, 7) (254,) finite: True\n(64, 7) (64,) finite: True\n(80, 7) (80,) finite: True\nTraining medians: [2869.    92.   148.5   76. ]\nTraining-only scaling means: [2983.91338583  102.94094488  192.57283465   76.11023622]\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 9,
+      "code": "keras.utils.set_random_seed(42)\nmodel = Sequential([Input(shape=(train_X.shape[1],)), Dense(16,activation=\"relu\"),Dense(1)],name=\"Auto_MPG_baseline\")\nmodel.summary()\nassert model.count_params() == (7*16+16)+(16+1) == 145\nprint(\"Manual total: (7*16+16)+(16+1) =\",model.count_params())\n",
+      "stdout": "Model: \"Auto_MPG_baseline\"\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 Layer (type)                    \u2502 Output Shape           \u2502       Param # \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 dense (Dense)                   \u2502 (None, 16)             \u2502           128 \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 dense_1 (Dense)                 \u2502 (None, 1)              \u2502            17 \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n Total params: 145 (580.00 B)\n Trainable params: 145 (580.00 B)\n Non-trainable params: 0 (0.00 B)\nManual total: (7*16+16)+(16+1) = 145\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 10,
+      "code": "model.compile(optimizer=\"adam\",loss=\"mean_squared_error\",metrics=[\"mae\"])\nprint(\"Compiled: Adam, mean squared error loss, mean absolute error metric\")\n",
+      "stdout": "Compiled: Adam, mean squared error loss, mean absolute error metric\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 11,
+      "code": "history = model.fit(train_X,train_y,epochs=300,batch_size=32,validation_data=(val_X,val_y),verbose=0)\nassert len(history.history[\"loss\"]) == 300\nprint(\"History keys:\",list(history.history))\nfor key,values in history.history.items():\n    assert np.isfinite(values).all()\n    print(key,\"final:\",values[-1])\n",
+      "stdout": "History keys: ['loss', 'mae', 'val_loss', 'val_mae']\nloss final: 9.760437965393066\nmae final: 2.3411617279052734\nval_loss final: 12.173733711242676\nval_mae final: 2.5367250442504883\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 12,
+      "code": "train_mse = history.history[\"loss\"]\nval_mse = history.history[\"val_loss\"]\nepochs = range(1, len(train_mse) + 1)\n\nplt.figure(figsize=(7, 4))\nplt.plot(epochs, train_mse, label=\"Training MSE\")\nplt.plot(epochs, val_mse, label=\"Validation MSE\")\nplt.xlabel(\"Epoch\")\nplt.ylabel(\"MSE (MPG squared)\")\nplt.title(\"Auto MPG MLP: training and validation loss\")\nplt.legend()\nplt.tight_layout()\nplt.show()\n",
+      "stdout": "",
+      "plots": [
+        "auto-mpg-block-12-figure-1"
+      ],
+      "status": "PASS"
+    },
+    {
+      "block": 13,
+      "code": "train_mae = history.history[\"mae\"]\nval_mae = history.history[\"val_mae\"]\nepochs = range(1, len(train_mae) + 1)\n\nplt.figure(figsize=(7, 4))\nplt.plot(epochs, train_mae, label=\"Training MAE\")\nplt.plot(epochs, val_mae, label=\"Validation MAE\")\nplt.xlabel(\"Epoch\")\nplt.ylabel(\"MAE (MPG)\")\nplt.title(\"Auto MPG MLP: training and validation MAE\")\nplt.legend()\nplt.tight_layout()\nplt.show()\n",
+      "stdout": "",
+      "plots": [
+        "auto-mpg-block-13-figure-1"
+      ],
+      "status": "PASS"
+    },
+    {
+      "block": 14,
+      "code": "print(\"Prediction before experiment: fewer hidden neurons reduce capacity; validation MAE could improve through less overfitting or worsen through underfitting.\")\nkeras.utils.set_random_seed(42)\ncandidate = Sequential([Input(shape=(train_X.shape[1],)),Dense(8,activation=\"relu\"),Dense(1)],name=\"Auto_MPG_candidate\")\ncandidate.compile(optimizer=\"adam\",loss=\"mean_squared_error\",metrics=[\"mae\"])\ncandidate_history = candidate.fit(train_X,train_y,epochs=300,batch_size=32,validation_data=(val_X,val_y),verbose=0)\nassert len(candidate_history.history[\"loss\"]) == 300\nassert candidate.count_params() == 73\ncomparison = pd.DataFrame({\"model\":[\"baseline: 16 hidden\",\"candidate: 8 hidden\"],\"epochs\":[300,300],\"final_val_mae\":[history.history[\"val_mae\"][-1],candidate_history.history[\"val_mae\"][-1]],\"final_val_mse\":[history.history[\"val_loss\"][-1],candidate_history.history[\"val_loss\"][-1]]})\nprint(comparison.to_string(index=False))\ncandidate_wins = candidate_history.history[\"val_mae\"][-1] < history.history[\"val_mae\"][-1]\nfinal_model = candidate if candidate_wins else model\nselected_name = \"8-neuron candidate\" if candidate_wins else \"16-neuron baseline\"\nprint(\"Selected by validation MAE:\",selected_name)\n",
+      "stdout": "Prediction before experiment: fewer hidden neurons reduce capacity; validation MAE could improve through less overfitting or worsen through underfitting.\n              model  epochs  final_val_mae  final_val_mse\nbaseline: 16 hidden     300       2.536725      12.173734\ncandidate: 8 hidden     300       2.832852      13.745847\nSelected by validation MAE: 16-neuron baseline\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 15,
+      "code": "test_mse, test_mae = [float(v) for v in final_model.evaluate(test_X,test_y,verbose=0)]\nbaseline_predictions = np.full(test_y.shape,baseline_mpg,dtype=\"float64\")\nbaseline_test_mae = float(np.mean(np.abs(baseline_predictions-test_y)))\nimprovement = baseline_test_mae-test_mae\nprint(\"Selected model:\",selected_name)\nprint(\"Test MSE (MPG squared):\",test_mse)\nprint(\"Test MAE (MPG):\",test_mae)\nprint(\"Training-mean baseline test MAE (MPG):\",baseline_test_mae)\nprint(\"Baseline MAE minus MLP MAE (positive means improvement):\",improvement)\nassert np.isfinite([test_mse,test_mae,baseline_test_mae]).all()\n",
+      "stdout": "Selected model: 16-neuron baseline\nTest MSE (MPG squared): 8.359137535095215\nTest MAE (MPG): 2.287304401397705\nTraining-mean baseline test MAE (MPG): 5.949803149606299\nBaseline MAE minus MLP MAE (positive means improvement): 3.662498748208594\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 16,
+      "code": "five_predictions = final_model.predict(test_X[:5],verbose=0).ravel()\nfive_results = pd.DataFrame({\"row_index\":X_test.index[:5],\"actual_mpg\":test_y[:5],\"predicted_mpg\":five_predictions,\"signed_error_mpg\":five_predictions-test_y[:5],\"absolute_error_mpg\":np.abs(five_predictions-test_y[:5])})\nprint(five_results.to_string(index=False))\nprint(\"Largest error among these five, original row index:\",five_results.loc[five_results.absolute_error_mpg.idxmax(),\"row_index\"])\n",
+      "stdout": " row_index  actual_mpg  predicted_mpg  signed_error_mpg  absolute_error_mpg\n       198        33.0      34.675991          1.675991            1.675991\n       396        28.0      32.015194          4.015194            4.015194\n        33        19.0      16.568718         -2.431282            2.431282\n       208        13.0      14.000330          1.000330            1.000330\n        93        14.0      13.285223         -0.714777            0.714777\nLargest error among these five, original row index: 396\n",
+      "plots": [],
+      "status": "PASS"
+    },
+    {
+      "block": 17,
+      "code": "new_vehicle = pd.DataFrame([{\"weight\":3000.,\"horsepower\":100.,\"displacement\":200.,\"model_year\":76,\"origin\":\"usa\"}])\nnew_encoded = encode_like_training(new_vehicle)\nnew_encoded[numeric_columns] = imputer.transform(new_encoded[numeric_columns])\nnew_encoded[numeric_columns] = scaler.transform(new_encoded[numeric_columns])\nassert new_encoded.columns.equals(X_train_encoded.columns)\nnew_X = new_encoded.to_numpy(dtype=\"float32\")\nassert new_X.shape == (1,7) and np.isfinite(new_X).all()\nnew_mpg = float(final_model.predict(new_X,verbose=0).ravel()[0])\nprint(\"Hypothetical vehicle estimated MPG:\",new_mpg)\nprint(\"This is a model estimate, not a measured fuel-efficiency value.\")\n",
+      "stdout": "Hypothetical vehicle estimated MPG: 21.0797119140625\nThis is a model estimate, not a measured fuel-efficiency value.\n",
+      "plots": [],
+      "status": "PASS"
+    }
+  ],
+  "warnings": []
+}

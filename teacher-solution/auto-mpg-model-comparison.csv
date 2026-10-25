@@ -1,0 +1,3 @@
+model,epochs,final_val_mae,final_val_mse
+baseline: 16 hidden,300,2.5367250442504883,12.173733711242676
+candidate: 8 hidden,300,2.8328521251678467,13.74584674835205
