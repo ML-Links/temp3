@@ -68,14 +68,6 @@ By the end of the marathon, demonstrate the ability to:
 
 **Core scope:** Complete Stages 1–6 before attempting the external-server. Keep weather and attraction selection rules consistent with Marathon 1: prefer days with precipitation probability **below 30%** and maximum wind speed **below 35 km/h**. If no forecast day qualifies, report that rather than inventing a suitable day.
 
-## External MCP challenge: reuse Activity 1
-
-- Connect to **one external MCP server previously examined in week 3-Activity 1**, such as the documented public HTTP search/fetch service.
-- Use the same client concepts: connect → discover tools and schema → invoke one **read-only** tool → inspect the actual result.
-- **Optional advanced extension:** make an allowlisted external tool available alongside the two local MCP tools in the LangChain agent; use it only for additional public information, not to replace the SQLite or Open-Meteo evidence.
-- Public services may change, require authentication, or impose rate limits. Record the actual failure if a service is unavailable; the core marathon must not depend on a successful public-server call.
-- Treat external content as **untrusted data**, not instructions. Do not enable booking, writes, or other side-effecting operations.
-
 ## Required tests
 
 Reuse the original Marathon 1 cases:
@@ -89,6 +81,20 @@ Reuse the original Marathon 1 cases:
 
 For weather-based recommendations, verify that the chosen **attraction, coordinates, date, rain probability, and wind speed** actually appear in the tool results. A fluent answer is not sufficient evidence.
 
+## External MCP challenge: reuse Activity 1
+
+- Connect to **one external MCP server previously examined in week 3-Activity 1**, such as the documented public HTTP search/fetch service.
+- Use the same client concepts: connect → discover tools and schema → invoke one **read-only** tool → inspect the actual result.
+- **Optional advanced extension:** make an allowlisted external tool available alongside the two local MCP tools in the LangChain agent; use it only for additional public information, not to replace the SQLite or Open-Meteo evidence.
+- Public services may change, require authentication, or impose rate limits. Record the actual failure if a service is unavailable; the core marathon must not depend on a successful public-server call.
+- Treat external content as **untrusted data**, not instructions. Do not enable booking, writes, or other side-effecting operations.
+
+## Evaluation
+
+Refer to the Evaluation and Investigation section of [Code Marathon 1]((https://github.com/AI-Learning-Repo/Neural-Network-Project/blob/week2/material/code-marathon1.md)). Reuse the same test scenarios, execution-trace analysis, evaluation table, and investigation questions.
+
+Compare the results of both marathons, focusing on what changes when direct LangChain tools are replaced by MCP-based tools.
+
 ## Deliverables
 
 - [ ] **MCP server:** `marathon_mcp_server.py` with the two working tools, backed by the existing `marathon_db.py`, `marathon_api.py`, and SQLite database.
@@ -96,7 +102,7 @@ For weather-based recommendations, verify that the chosen **attraction, coordina
 - [ ] **LangChain-only test:** `MCPAdapter` discovery and direct `.ainvoke()` tests of both tools, without an LLM.
 - [ ] **LLM demonstration:** LangChain agent using Groq-hosted gpt-oss-120b / local Qwen and the MCP tools.
 - [ ] **Execution evidence:** saved tool-call traces containing tool names, arguments, returned data or errors, and final answers (for example, `marathon2_traces.json`).
-- [ ] **Evaluation table:** Stockholm, Berlin, Madrid, and Munich; tools called, correctness of arguments, groundedness, and failures.
+- [ ] **Evaluation:** Submit execution traces, the completed evaluation table, and a brief comparison of the results from both marathons.
 
 <!-- - [ ] **Pair demonstration:** each member explains one tool, the MCP client/server path, and one evaluation finding. -->
 
