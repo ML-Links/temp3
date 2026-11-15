@@ -11,15 +11,18 @@ For environment preparation, use the separate [Python setup for CNN activities](
 
 **Dataset:** This activity continues with MNIST handwritten digits (0–9). The transfer-learning experiment defines separate source and target tasks within that dataset. Hand calculations are optional practice.
 
+**Core and optional work:** Sections **1–5** are the core activity and can be completed after the CNN lecture on padding, stride, and pooling. Sections **6–10 are optional extensions**: Section 6 introduces Global Average Pooling, and Sections 7–10 explore transfer learning, freezing, fine-tuning, and model comparisons. These extensions are not required to complete the core activity and are best attempted after the corresponding theory has been introduced. In Section 11, **Question 36** checks the core concepts, while **Question 37** belongs to the optional extensions. If the optional experiments are attempted, run their code cells in order because later sections reuse earlier models and variables.
+
+
 ## Learning objectives
 
 1. Distinguish a spatial reduction caused by valid convolution from one caused by valid stride-2 pooling.
 2. Predict and verify output shapes for `VALID` and `SAME` padding, including asymmetric padding with even-sized kernels.
 3. Explain how stride changes which filter positions are evaluated, without changing filter weights.
 4. Compare max pooling and average pooling, and test the limits of local translation tolerance.
-5. Explain why a `Flatten` classifier depends on spatial dimensions and how Global Average Pooling (GAP) changes the design.
-6. Distinguish training from scratch, a frozen pretrained feature extractor, and fine-tuning.
-7. Interpret validation results without assuming that pretrained models always outperform newly initialized networks.
+5. Explain why a `Flatten` classifier depends on spatial dimensions; **optional:** explore how Global Average Pooling (GAP) changes the design.
+6. **Optional:** Distinguish training from scratch, a frozen pretrained feature extractor, and fine-tuning.
+7. **Optional:** Interpret validation results without assuming that pretrained models always outperform newly initialized networks.
 
 ---
 
@@ -1533,7 +1536,7 @@ Match each operation to its main purpose: add border positions, move the filter 
 
 </details>
 
-**Question 37.** Is Global Average Pooling a substitute for every kind of max pooling? Is freezing a network the same as eliminating its forward computation? Does a pretrained network always generalize to a different task?
+**Question 37 (optional).** Is Global Average Pooling a substitute for every kind of max pooling? Is freezing a network the same as eliminating its forward computation? Does a pretrained network always generalize to a different task?
 
 <details>
 <summary>Hint: Question 37</summary>

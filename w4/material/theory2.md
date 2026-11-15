@@ -1,6 +1,6 @@
 # Theory 2: Convolutional Neural Networks: Spatial Design and Transfer Learning
 
-*From the CNN in Theory 1 to padding, stride, pooling, global average pooling, and reusable learned representations*
+> Core and optional reading: Sections 1–6 develop the essential concepts of CNN spatial design, including padding, stride, pooling, and output dimensions. Sections 7–10 are optional extensions that introduce Global Average Pooling, transfer learning, freezing pretrained layers, and fine-tuning. Section 11 contains general evaluation principles alongside optional transfer-learning comparisons. These advanced topics are provided for further exploration and are not required for the core CNN activities.
 
 ## Learning objectives
 
