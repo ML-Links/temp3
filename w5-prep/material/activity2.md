@@ -116,13 +116,13 @@ for pkg in [
 
 ### 3. Download the PDF and DOCX handbooks
 
-Run this cell to download the `.pdf` and `.docx` files into your Colab working directory. Replace `BASE_URL` with the raw URL where your files are hosted (for example, your GitHub `raw.githubusercontent.com` folder URL):
+Run this cell to download the `.pdf` and `.docx` files into your Colab working directory. 
 
 ```python
 import subprocess
 from pathlib import Path
 
-BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  # Replace with your actual folder/raw GitHub URL
+BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  
 
 doc_files = [
     "trip_planner_itinerary.pdf",
@@ -704,7 +704,7 @@ for msg in result.get("messages", []):
     if msg.text:
         print(f"[{msg.type.upper()}]\n{msg.text}\n" + "-" * 50)
 ```
-<!-- 
+ 
 
 Try running a multi-document query next across both `.pdf` and `.docx` files:
 
@@ -780,7 +780,7 @@ Your RAG agent should retrieve facts from both `.docx` and `.pdf` handbooks:
 - **`OUT_OF_CORPUS_QUERY`**: The agent should clearly state that **neither a check-out time for The Basalt Lantern Inn nor a mainland airline** is mentioned in the handbooks, rather than guessing.
 
 </details> 
--->
+
 
 ## Optional Quality Control: Grading Rubrics (`RubricMiddleware`)
 

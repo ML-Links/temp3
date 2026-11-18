@@ -108,13 +108,13 @@ for pkg in [
 
 ### 3. Download the Trip Planner markdown files
 
-Run this cell to download the three fictional handbooks into your Colab working directory. Replace `BASE_URL` with the raw URL where your files are hosted (e.g., your GitHub `raw.githubusercontent.com` folder URL):
+Run this cell to download the three fictional handbooks into your Colab working directory. 
 
 ```python
 import subprocess
 from pathlib import Path
 
-BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  # Replace with your actual folder/raw GitHub URL
+BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  
 
 md_files = [
     "trip_planner_itinerary.md",
@@ -592,7 +592,7 @@ In a typical run, the agent:
 3. Launches `task()` calls to `chunk-analyst`, each reading one chunk file via `read_file`.
 4. Synthesizes an accurate answer (`CTF-90`, plus the schedule details and source file `trip_planner_itinerary.md`).
 
-<!-- 
+
 Try running a multi-document query next across files:
 
 ```python
@@ -655,7 +655,7 @@ display(Markdown(result["messages"][-1].text))
 - **`OUT_OF_CORPUS_QUERY`**: The agent should clearly state that **neither a check-out time for The Basalt Lantern Inn nor a mainland airline** is mentioned in the handbooks, rather than guessing.
 
 </details>
--->
+
 
 
 ## Security considerations
@@ -681,7 +681,7 @@ Always verify outputs before surfacing them to end users—confirm that cited fi
 import subprocess
 from pathlib import Path
 
-BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  # Replace with your actual folder/raw GitHub URL
+BASE_URL = "https://ai-learning-repo.github.io/resources/rag"  
 
 md_files = [
     "trip_planner_itinerary.md",

@@ -2,7 +2,6 @@
 
 **Thursday, 19.11.2026 | 09:00–16:30 | Room: MMC223**
 
-<!-- - [Outline](./material/toc.md) -->
 
 ---
 
@@ -10,10 +9,34 @@
 
 
 - [Summary (Theory)](./material/theory.md)
-- [Activity 1: RAG with Markdown & InMemoryVectorStore](./material/activity1.md)
+- Activity 1: RAG with Markdown & InMemoryVectorStore
+  - [Groq](./material/activity1.md)
+  - [Gemini](./material/activity1gemini.md)
 - [Activity 2: RAG with PDF/DOCX, ChromaDB & Grading](./material/activity2.md)
+- **Helper:**
+  - [Convert Markdown to DOCX and PDF](./material/markdown_to_docx_and_pdf.ipynb)
+  - [Gemini vs Groq](./material/gemini)
 
 ---
+
+<details>
+<summary>Links used in Session</summary>
+
+- https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai
+- https://docs.langchain.com/oss/javascript/langchain/overview
+- https://docs.langchain.com/oss/python/deepagents/rag
+- https://github.com/langchain-ai/docs/blob/main/src/oss/deepagents/rag.mdx
+- https://docs.langchain.com/oss/python/deepagents/skills
+- https://docs.langchain.com/oss/python/integrations/document_loaders
+- https://github.com/polzerdo55862/RAG-with-Python-Cookbook
+- https://docs.langchain.com/oss/python/deepagents/customization
+
+<!-- - https://www.tavily.com/ -->
+
+</details>
+
+----
+
 
 ## Afternoon: Sprint 2 Review & Sprint 3 Planning
 
@@ -46,13 +69,16 @@
   - [LLMs can natively read & write neural network weights](https://rikiyat.github.io/blog/weight-space-programming/)
   - [Weight-Space Programming Works Beyond GPT-6 Astra, Replications Show](https://rits.shanghai.nyu.edu/ai/weight-space-programming-works-beyond-gpt-6-astra-replications-show/)
   - [Weight-space programming](https://en.wikipedia.org/wiki/Weight-space_programming)
-- **Helper:**
-  - [Convert Markdown to DOCX and PDF](./material/markdown_to_docx_and_pdf.ipynb)
 - **Video(s):**
   - [What are Deep Agents? (LangChain)](https://www.youtube.com/watch?v=IVts6ztrkFg)
   - [Complete Deep Agents Course With Langchain In 3 Hours](https://www.youtube.com/watch?v=J8DzuMmSDEU)
 
 
+<!-- 
+- [Outline](./material/toc.md) 
+- [Deep Agents](./material/deep-agents.md)
+
+-->
 
 <!-- - [Vector Databases Full Course for Beginners – Embeddings, Similarity Search & ChromaDB](https://www.youtube.com/watch?v=lR931Iz8Z6U) *(Note: this video uses Gemini embeddings, whereas our labs use HuggingFace `all-MiniLM-L6-v2` + Groq.)* -->
 

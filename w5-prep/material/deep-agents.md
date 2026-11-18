@@ -2,6 +2,7 @@
 
 A standard RAG pipeline follows a direct pattern: retrieve relevant chunks from a document collection, add them to the LLM's context, and generate an answer. **Deep Agents** does not replace RAG. Instead, it gives an LLM structured capabilities to decide *how* to use RAG, tools, and other agents when solving more complicated tasks.
 
+
 ---
 
 ## 1. How Ordinary RAG Works
@@ -25,6 +26,8 @@ This question spans multiple sections or handbooks. A single `top-k` similarity 
 An **agent** gives the LLM another option: instead of answering immediately, it can choose actions in a loop—for instance, searching for luggage restrictions first, storage fees second, evacuation rules third, and then combining the findings.
 
 ## 3. What Is a Deep Agent?
+
+<img src="./img/deep-agent.png" width="50%">
 
 A **Deep Agent** is an agent harness equipped with ready-made capabilities for managing multi-step work. It is still powered by a standard LLM (not a special kind of model): the LLM handles reasoning and decisions, while Deep Agents provides tools, a virtual filesystem, subagent delegation, context management, and optional task planning.
 
