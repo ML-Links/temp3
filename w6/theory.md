@@ -8,7 +8,7 @@ Agent2Agent (A2A) is an open communication protocol designed to address this pro
 
 The Model Context Protocol (MCP) addresses a complementary problem: connecting model-powered applications to tools, resources and prompts. A2A extends the architectural possibilities by allowing independent agentic services to participate in a conversation or a task-oriented interaction. For example, a purchasing assistant may ask a seller to find suitable products, receive a request for clarification, obtain a quotation, and decide whether to proceed. It does not need access to the seller's internal tools or prompts.
 
-This chapter explains the distinction between internal orchestration and external interoperability, the core A2A protocol objects, server and client implementations, the relationship with MCP, and ways to test a distributed agentic system. The examples are self-contained and use fictional prices and travel data. No actual orders or reservations are made. The protocol examples target A2A **1.0**; the Python examples use **a2a-sdk 1.3.1** as an illustrative pinned SDK release rather than a claim that it is the newest available package.
+This document explains the distinction between internal orchestration and external interoperability, the core A2A protocol objects, server and client implementations, the relationship with MCP, and ways to test a distributed agentic system. The examples are self-contained and use fictional prices and travel data. No actual orders or reservations are made. The protocol examples target A2A **1.0**; the Python examples use **a2a-sdk 1.3.1** as an illustrative pinned SDK release rather than a claim that it is the newest available package.
 
 
 <img src="./img/a2a1.png" width="20%">
@@ -715,7 +715,7 @@ Only necessary data should cross service boundaries. A seller does not need the 
 
 Remote messages and artifacts are untrusted application data. They may contain incorrect information or instructions that attempt to influence the coordinating model. Validate structured data, restrict tool permissions, and keep authorization and side-effect decisions outside untrusted content. Never permit a remote message to override the application's governing instructions or user authorization. For URLs in returned parts or discovery records, use allowlists and network protections where appropriate to reduce unintended access to internal endpoints.
 
-For actual orders, reservations or payments, obtain explicit user authorization and validate the final terms before committing. The examples in this chapter are quotation-only simulations.
+For actual orders, reservations or payments, obtain explicit user authorization and validate the final terms before committing. The examples in this document are quotation-only simulations.
 
 ### 15.4 Observability
 
